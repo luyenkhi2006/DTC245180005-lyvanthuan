@@ -1,0 +1,183 @@
+
+services:
+  app:
+    image: node:20
+    container_name: forum-app
+    working_dir: /app
+    command: node server.js
+    volumes:
+      - ./:/app
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - forum-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: forum-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - forum-net
+
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: forum-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - forum_prometheus_data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    restart: unless-stopped
+    networks:
+      - forum-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: forum-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env}
+    ports:
+      - "3001:3000"
+    volumes:
+      - forum_grafana_data:/var/lib/grafana
+    restart: unless-stopped
+    networks:
+      - forum-net
+
+  loki:
+    image: grafana/loki:3.5.1
+    container_name: forum-loki
+    command: -config.file=/etc/loki/loki-config.yml
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - forum_loki_data:/loki
+    ports:
+      - "127.0.0.1:3100:3100"
+    restart: unless-stopped
+    networks:
+      - forum-net
+
+  promtail:
+    image: grafana/promtail:3.5.0
+    container_name: forum-promtail
+    command: -config.file=/etc/promtail/promtail-config.yml
+    volumes:
+      - ./monitoring/promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/log:/var/log:ro
+      - forum_promtail_positions:/tmp
+    restart: unless-stopped
+    networks:
+      - forum-net
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.4.2
+    container_name: forum-nginx-exporter
+    command:
+      - --nginx.scrape-uri=http://nginx/nginx_status
+    restart: unless-stopped
+    networks:
+      - forum-net
+
+  mysql-exporter:
+    image: prom/mysqld-exporter:v0.17.2
+    container_name: forum-mysql-exporter
+    command:
+      - --config.my-cnf=/etc/mysql/exporter.cnf
+    volumes:
+      - ./monitoring/mysql/exporter.cnf:/etc/mysql/exporter.cnf:ro
+    restart: unless-stopped
+    networks:
+      - forum-net
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: forum-node-exporter
+    command:
+      - --path.rootfs=/host
+    volumes:
+      - /:/host:ro,rslave
+    restart: unless-stopped
+    networks:
+      - forum-net
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: forum-cadvisor
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    restart: unless-stopped
+    networks:
+      - forum-net
+
+
+  mysql:
+    image: mysql:8.0
+    container_name: forum-mysql
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - forum_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - forum-net
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: forum-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    depends_on:
+      - mysql
+    networks:
+      - forum-net
+
+volumes:
+  forum_mysql_data:
+  forum_prometheus_data:
+  forum_grafana_data:
+  forum_loki_data:
+  forum_promtail_positions:
+networks:
+  forum-net:
+    driver: bridge
