@@ -1,0 +1,15 @@
+<%- include('header', { title: 'Đăng ký' }) %>
+<section class="card form-card">
+  <h1>Đăng ký tài khoản</h1>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form action="/register" method="post">
+    <label>Tên đăng nhập</label>
+    <input name="username" required minlength="3" maxlength="50" pattern="[A-Za-z0-9_]+">
+    <label>Email</label>
+    <input type="email" name="email" required maxlength="150">
+    <label>Mật khẩu (ít nhất 8 ký tự)</label>
+    <input type="password" name="password" required minlength="8" maxlength="72">
+    <button type="submit">Tạo tài khoản</button>
+  </form>
+</section>
+<%- include('footer') %>

@@ -1,0 +1,13 @@
+<%- include('header', { title: 'Đăng nhập' }) %>
+<section class="card form-card">
+  <h1>Đăng nhập</h1>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form action="/login" method="post">
+    <label>Tên đăng nhập</label>
+    <input name="username" required autocomplete="username">
+    <label>Mật khẩu</label>
+    <input type="password" name="password" required autocomplete="current-password">
+    <button type="submit">Đăng nhập</button>
+  </form>
+</section>
+<%- include('footer') %>

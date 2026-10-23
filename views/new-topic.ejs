@@ -1,0 +1,13 @@
+<%- include('header', { title: 'Tạo chủ đề' }) %>
+<section class="card form-card">
+  <h1>Tạo chủ đề mới</h1>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form action="/topics" method="post">
+    <label>Tiêu đề</label>
+    <input name="title" required maxlength="200">
+    <label>Nội dung</label>
+    <textarea name="body" rows="8" required maxlength="10000"></textarea>
+    <button type="submit">Đăng chủ đề</button>
+  </form>
+</section>
+<%- include('footer') %>

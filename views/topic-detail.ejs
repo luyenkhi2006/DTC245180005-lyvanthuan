@@ -1,0 +1,32 @@
+<%- include('header', { title: topic.title }) %>
+<article class="card">
+  <h1><%= topic.title %></h1>
+  <p class="content"><%= topic.body %></p>
+  <small>Đăng bởi <%= topic.User.username %> · <%= topic.createdAt.toLocaleString('vi-VN') %></small>
+</article>
+
+<h2>Bình luận (<%= topic.Comments.length %>)</h2>
+<% if (topic.Comments.length === 0) { %>
+  <p>Chưa có bình luận nào.</p>
+<% } %>
+
+<% topic.Comments.forEach(comment => { %>
+  <article class="card">
+    <p class="content"><%= comment.body %></p>
+    <small><%= comment.User.username %> · <%= comment.createdAt.toLocaleString('vi-VN') %></small>
+  </article>
+<% }) %>
+
+<% if (user) { %>
+  <section class="card form-card">
+    <h3>Viết bình luận</h3>
+    <form action="/topics/<%= topic.id %>/comments" method="post">
+      <textarea name="body" rows="4" maxlength="5000" required></textarea>
+      <button type="submit">Gửi bình luận</button>
+    </form>
+  </section>
+<% } else { %>
+  <p><a href="/login">Đăng nhập</a> để bình luận.</p>
+<% } %>
+<p><a href="/topics">← Quay lại danh sách chủ đề</a></p>
+<%- include('footer') %>

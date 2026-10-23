@@ -1,0 +1,20 @@
+<%- include('header', { title: 'Danh sách chủ đề' }) %>
+<h1>Diễn đàn</h1>
+<p>Nơi trao đổi và thảo luận của cộng đồng.</p>
+
+<% if (user) { %>
+  <p><a class="button" href="/topics/new">+ Tạo chủ đề mới</a></p>
+<% } %>
+
+<% if (topics.length === 0) { %>
+  <section class="card">Chưa có chủ đề nào. Hãy tạo chủ đề đầu tiên!</section>
+<% } %>
+
+<% topics.forEach(topic => { %>
+  <article class="card">
+    <h2><a href="/topics/<%= topic.id %>"><%= topic.title %></a></h2>
+    <p><%= topic.body.length > 180 ? topic.body.slice(0, 180) + '…' : topic.body %></p>
+    <small>Đăng bởi <%= topic.User.username %> · <%= topic.createdAt.toLocaleString('vi-VN') %></small>
+  </article>
+<% }) %>
+<%- include('footer') %>

@@ -1,0 +1,38 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: #f3f5f9; color: #202938;
+  font: 16px/1.6 Arial, sans-serif;
+}
+header {
+  background: #172554; color: white; padding: 16px 5%;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 12px;
+}
+header a { color: white; text-decoration: none; margin-right: 12px; }
+.brand { font-size: 21px; font-weight: bold; }
+nav { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+main { max-width: 900px; margin: 30px auto; padding: 0 18px; min-height: 65vh; }
+.card {
+  background: white; padding: 20px; margin: 16px 0;
+  border-radius: 10px; box-shadow: 0 2px 8px #0000000d;
+  overflow-wrap: anywhere;
+}
+.card h2 { margin-top: 0; }
+a { color: #1d4ed8; }
+button, .button {
+  background: #1d4ed8; color: white; border: 0; border-radius: 6px;
+  padding: 10px 15px; cursor: pointer; text-decoration: none;
+}
+form label { display: block; margin-top: 12px; }
+input, textarea {
+  display: block; width: 100%; margin: 6px 0 12px;
+  padding: 11px; border: 1px solid #cbd5e1; border-radius: 6px;
+  font: inherit;
+}
+.form-card { max-width: 600px; margin: 20px auto; }
+.inline { display: inline; }
+.inline button { padding: 6px 10px; }
+.error { color: #b91c1c; }
+.content { white-space: pre-wrap; }
+small { color: #64748b; }
+footer { text-align: center; padding: 24px; color: #64748b; }

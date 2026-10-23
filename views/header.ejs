@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title || 'Forum Đề 15' %></title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <a href="/topics" class="brand">Forum Đề 15</a>
+  <nav>
+    <a href="/topics">Chủ đề</a>
+    <% if (user) { %>
+      <a href="/topics/new">Tạo chủ đề</a>
+      <span>Xin chào, <%= user.username %></span>
+      <form action="/logout" method="post" class="inline">
+        <button type="submit">Đăng xuất</button>
+      </form>
+    <% } else { %>
+      <a href="/login">Đăng nhập</a>
+      <a href="/register">Đăng ký</a>
+    <% } %>
+  </nav>
+</header>
+<main>
