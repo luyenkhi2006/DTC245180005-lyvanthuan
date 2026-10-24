@@ -1,0 +1,40 @@
+🚀 Hệ thống Diễn đàn & Giám sát Containerized (Đề 15)Dự án triển khai hệ thống Diễn đàn (Forum) sử dụng Node.js và MySQL, được container hóa toàn diện với Docker Compose. Hệ thống tích hợp Nginx Reverse Proxy bảo mật, cùng stack giám sát, quản lý log tập trung chuyên nghiệp (Prometheus, Grafana, Loki, Promtail).📑 Mục lụcKiến trúc tổng thểCông nghệ sử dụngCấu trúc thư mụcYêu cầu hệ thốngHướng dẫn cài đặtCấu hình biến môi trườngTruy cập dịch vụTài khoản & Sử dụngGiám sát & LoggingQuản trị DatabaseVận hành & Bảo trìTroubleshootingBảo mật & HardeningKiểm thử & Nghiệm thu🏗 Kiến trúc tổng thểĐoạn mãgraph TD
+  User((Người dùng)) -->|HTTP 80 / HTTPS 443| Nginx[Nginx Reverse Proxy]
+  Nginx -->|Proxy Pass| NodeApp[Node.js Web App :3000]
+  NodeApp -->|TCP| MySQL[(MySQL 8.0 :3306)]
+  PMA[phpMyAdmin :8080] -->|Admin| MySQL
+
+  subgraph Giám sát & Logging
+    DockerEngine[Docker Containers] -->|Log streams| Promtail
+    Promtail -->|Push| Loki
+    Loki -->|Log Source| Grafana[Grafana :3001]
+
+    NodeExp[Node Exporter] -->|Metrics| Prom[Prometheus :9090]
+    MySQLExp[MySQL Exporter] -->|Metrics| Prom
+    NginxExp[Nginx Exporter] -->|Metrics| Prom
+    cAdvisor[cAdvisor] -->|Metrics| Prom
+    Prom -->|Data Source| Grafana
+  end
+🛠 Công nghệ sử dụngThành phầnCông nghệCổng (Internal/External)Vai tròWeb AppNode.js / Express3000 / NoneỨng dụng Backend API & Giao diện diễn đàn.Reverse ProxyNginx80, 443 / 80, 443Định tuyến traffic, cấu hình SSL/TLS (HTTPS).DatabaseMySQL 8.03306 / NoneLưu trữ dữ liệu diễn đàn.DB AdminphpMyAdmin80 / 8080Giao diện Web quản trị MySQL.Metrics ServerPrometheus9090 / 9090Thu thập chỉ số từ các exporter.DashboardGrafana3000 / 3001Hiển thị biểu đồ giám sát và log.Log EngineLoki & Promtail3100 / NoneThu thập, lưu trữ và phân tích Log tập trung.ExportersNode, MySQL, Nginx, cAdvisorĐa dạngCung cấp dữ liệu hệ thống, container, DB cho Prometheus.📁 Cấu trúc thư mụcPlaintextforum-project/
+├── app/                  # Mã nguồn ứng dụng Node.js (package.json, index.js...)
+├── nginx/                # File cấu hình Nginx (nginx.conf, certs/)
+├── prometheus/           # Cấu hình Prometheus (prometheus.yml)
+├── promtail/             # Cấu hình Promtail (promtail.yaml)
+├── docker-compose.yml    # File định nghĩa toàn bộ service Docker
+├── .env.example          # File mẫu chứa các biến môi trường
+├── .gitignore            # Loại bỏ node_modules, .env,...
+└── README.md             # Tài liệu dự án
+⚙️ Yêu cầu hệ thốngOS: Linux (Ubuntu/CentOS), macOS, hoặc Windows (WSL2/Hyper-V).Engine: Docker Engine v20.10+ (hoặc Docker Desktop).Orchestration: Docker Compose V2.Git: Cài đặt sẵn để clone source code.🚀 Hướng dẫn cài đặt và triển khaiBước 1: Clone repositoryBashgit clone https://github.com/<YOUR_USERNAME>/forum-project.git
+cd forum-project
+Bước 2: Cấu hình biến môi trường
+Tạo file .env từ file mẫu:Bashcp .env.example .env
+Mở file .env bằng trình chỉnh sửa (ví dụ nano .env) và thay đổi các mật khẩu mặc định để đảm bảo an toàn.Bước 3: Khởi chạy hệ thống
+Khởi tạo và chạy toàn bộ các dịch vụ dưới dạng daemon (chạy ngầm):Bashdocker compose up -d --build
+Bước 4: Kiểm tra trạng thái
+Đảm bảo tất cả các container đều ở trạng thái Up:Bashdocker compose ps
+🔑 Cấu hình biến môi trườngDự án yêu cầu các biến môi trường sau trong file .env (Dựa trên cấu hình mẫu):Biến môi trườngMục đíchBắt buộcGiá trị mẫuMYSQL_DATABASETên database khởi tạoCóforum_dbMYSQL_USERTài khoản MySQL (non-root)Cóforum_userMYSQL_PASSWORDMật khẩu cho userCóChangeme_...MYSQL_ROOT_PASSWORDMật khẩu root của MySQLCóRootDB_...SESSION_SECRETKhóa mã hóa session Node.jsCó455b95cb...GRAFANA_ADMIN_PASSWORDMật khẩu admin GrafanaCó1vtfk081026Lưu ý: Tuyệt đối không commit file .env chứa mật khẩu thật lên GitHub.🌐 Truy cập các dịch vụSau khi hệ thống khởi động thành công, truy cập qua các địa chỉ sau:Dịch vụURL truy cập (Localhost/IP)Chức năngWeb Forumhttp://<IP-Server>Trải nghiệm ứng dụng diễn đàn qua Nginx.phpMyAdminhttp://<IP-Server>:8080Quản trị DB.Prometheushttp://<IP-Server>:9090Xem trạng thái Target, chạy thử truy vấn PromQL.Grafanahttp://<IP-Server>:3001Xem Dashboard.🔐 Danh sách Tài khoản & Đăng nhập mặc địnhĐể thuận tiện cho việc chấm điểm và kiểm thử, dưới đây là các tài khoản mặc định được khởi tạo cùng hệ thống:Dịch vụĐường dẫn truy cậpTên đăng nhập (Username)Mật khẩu (Password)Ghi chúGiao diện Diễn đànhttp://<IP-Server>adminadmin123(Bạn có thể tự đăng ký tài khoản mới trên web)Quản trị DB (phpMyAdmin)http://<IP-Server>:8080rootRootDB_... (Lấy trong .env)Quản lý toàn bộ cấu trúc Database.Bảng theo dõi (Grafana)http://<IP-Server>:3001admin1vtfk081026Dùng để xem biểu đồ và log hệ thống.🕹️ Hướng dẫn chạy dự án và Sử dụng1. Khởi động toàn bộ hệ thống
+Đảm bảo bạn đang ở trong thư mục forum-project, mở terminal và chạy lệnh:Bashdocker compose up -d
+(Hệ thống sẽ mất khoảng 1-2 phút để khởi động hoàn toàn các container database và web).2. Đăng nhập và test tính năng Diễn đànMở trình duyệt web, truy cập vào trang chủ.Nhấn vào nút Đăng nhập ở góc phải màn hình.Sử dụng tài khoản admin để trải nghiệm các tính năng, hoặc nhấn Đăng ký để tạo một người dùng mới.Thử đăng một bài viết mới để kiểm tra luồng ghi dữ liệu vào MySQL.3. Đăng nhập và xem Log/Giám sátMở tab mới, truy cập Grafana ở cổng 3001.Đăng nhập bằng tài khoản admin (mật khẩu như bảng trên).Truy cập menu Dashboards để xem thông số CPU/RAM của các container.Truy cập menu Explore -> Chọn nguồn Loki để xem log thực tế.4. Dừng dự án khi không sử dụng
+Để tắt hệ thống và giải phóng tài nguyên cho máy tính, chạy lệnh:Bashdocker compose down
+📊 Hệ thống Giám sát & LoggingPrometheus & ExportersPrometheus tự động scrape (thu thập) metrics từ các dịch vụ. Truy cập http://<IP>:9090/targets để xác nhận tất cả exporter đang ở trạng thái UP.Quản lý Log tập trung (Loki & Promtail)Log từ tất cả các container Docker được Promtail đọc và đẩy về Loki. Để xem log:Đăng nhập Grafana (Cổng 3001).Vào Explore (Biểu tượng la bàn).Chọn Data Source là Loki.Sử dụng LogQL để truy vấn. Ví dụ:Xem log của Nginx: {job="docker"} |= "nginx"Xem lỗi của Node.js: {container="forum-app"} |= "error"🗄 Quản trị DatabaseDatabase được map volume để đảm bảo dữ liệu không bị mất khi container khởi động lại.Volume location: Được quản lý bởi Docker (thường là mysql_data).Lệnh truy cập MySQL CLI trực tiếp:Bashdocker exec -it <container_mysql_name> mysql -u root -p
+Cảnh báo: Tránh sử dụng lệnh docker compose down -v nếu không muốn xóa sạch toàn bộ dữ liệu diễn đàn.🛠 Vận hành và bảo trìHành độngLệnh thực thiXem log trực tiếpdocker compose logs -f <service_name>Khởi động lại 1 dịch vụdocker compose restart nginxCập nhật mã nguồn/builddocker compose up -d --build <service_name>Dừng hệ thốngdocker compose downDọn dẹp tài nguyêndocker system prune -a (Cẩn trọng)🚑 Troubleshooting (Xử lý sự cố)Lỗi phổ biếnNguyên nhânCách xử lýPort is already allocatedCổng (80, 443, 3306...) đang bị ứng dụng khác chiếm.Đổi port publish trong docker-compose.yml hoặc tắt ứng dụng xung đột.502 Bad GatewayNginx không kết nối được với Node.js.Kiểm tra log Node.js (docker compose logs app). Đảm bảo app đã chạy ở port 3000.Container liên tục RestartThường do sai cấu hình biến môi trường hoặc thiếu file.Xem log: docker compose logs <container_name>.Không thấy Log trong GrafanaPromtail cấu hình sai nhãn, chưa mount volume docker.Kiểm tra Label browser trong Grafana -> Explore -> Loki.🔒 Bảo mật và HardeningHệ thống hiện tại đã áp dụng các biện pháp bảo mật:Reverse Proxy giấu Port thực tế của ứng dụng (3000).Không expose cổng MySQL (3306) ra bên ngoài host máy chủ (chỉ giao tiếp trong mạng nội bộ docker).Loại bỏ file .env khỏi version control thông qua .gitignore.✅ Kiểm thử và Nghiệm thu[ ] Lệnh docker compose up -d chạy thành công không báo lỗi.[ ] Truy cập http://localhost (hoặc IP) hiện giao diện Node.js mượt mà.[ ] MySQL lưu trữ thành công dữ liệu đăng ký/đăng nhập (Xác minh qua phpMyAdmin cổng 8080).[ ] Các dashboard Grafana hiển thị được biểu đồ CPU/RAM và dữ liệu Nginx/MySQL.[ ] Giao diện Explore trong Grafana truy vấn được log thực tế qua Loki.

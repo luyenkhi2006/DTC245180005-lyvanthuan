@@ -1,5 +1,5 @@
 [client]
 user=forum_user
-password=THAY_BANG_MAT_KHAU_MYSQL
+password=ForumApp_ChangeMe_2026
 host=forum-mysql
 port=3306
